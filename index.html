@@ -55,7 +55,7 @@
       feature.popup = new OpenLayers.Popup.FramedCloud("pop",
           feature.geometry.getBounds().getCenterLonLat(),
           null,
-          '<span>'+feature.attributes.description+'</span>',
+          '<span style="background: white">'+feature.attributes.description+'</span>',
           null,
           true,
           function() { controls['selector'].unselectAll(); }
