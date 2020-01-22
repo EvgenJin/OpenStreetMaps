@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Maps of objects</title>
+    <script src="data.js"></script>
+  </head>
+  <body>
+  <div id="mapdiv"></div>
+  <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+ 
+  <script>
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+    
+    epsg4326 =  new OpenLayers.Projection("EPSG:4326"); //WGS 1984 projection
+    projectTo = map.getProjectionObject(); //The map projection (Spherical Mercator)
+   
+    var lonLat = new OpenLayers.LonLat( 60.634484,56.884565 ).transform(epsg4326, projectTo);
+          
+    var zoom=10;
+    map.setCenter (lonLat, zoom);
+
+    var vectorLayer = new OpenLayers.Layer.Vector("Overlay");
+    
+    marker_array = [
+      {lon:60.606475,lat:56.903998,name:'Дом на Индустрии'},
+      {lon:60.592595,lat:56.831364,name:'ЖД ТихвинЪ'},
+      {lon:60.613385,lat:56.805299,name:'ЖК Das Haus'},
+      {lon:59.948467,lat:57.872292,name:'ЖК Абсолют'},
+      {lon:60.620192,lat:56.810867,name:'ЖК Академия'},
+      {lon:60.752807,lat:56.899733,name:'ЖК Березки'},
+      {lon:60.661978,lat:56.776251,name:'ЖК Каменный ручей'}
+    ]
+
+
+    function add_markers(array) {
+      array.forEach(el => {
+        let feature = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point( el.lon,el.lat ).transform(epsg4326, projectTo),
+            {description:el.name} ,
+            {externalGraphic: './marker.png', graphicHeight: 25, graphicWidth: 21, graphicXOffset:-12, graphicYOffset:-25  }
+        );    
+        vectorLayer.addFeatures(feature);        
+      });
+    }
+    add_markers(marker_array)
+
+    map.addLayer(vectorLayer);
+    
+    //Add a selector control to the vectorLayer with popup functions
+    var controls = {
+      selector: new OpenLayers.Control.SelectFeature(vectorLayer, { onSelect: createPopup, onUnselect: destroyPopup })
+    };
+
+    function createPopup(feature) {
+      feature.popup = new OpenLayers.Popup.FramedCloud("pop",
+          feature.geometry.getBounds().getCenterLonLat(),
+          null,
+          '<div class="markerContent" style=" height: 10px">'+feature.attributes.description+'</div>',
+          null,
+          true,
+          function() { controls['selector'].unselectAll(); }
+      );
+      feature.popup.closeOnMove = true;
+      map.addPopup(feature.popup);
+    }
+
+    function destroyPopup(feature) {
+      feature.popup.destroy();
+      feature.popup = null;
+    }
+    
+    map.addControl(controls['selector']);
+    controls['selector'].activate();
+      
+  </script>
+</body>
+</html>
